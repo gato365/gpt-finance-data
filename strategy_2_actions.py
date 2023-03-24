@@ -59,23 +59,47 @@ def backtest(data, initial_capital):
             position = 0
             capital += sell_price
 
-    return capital, profits
+    return capital, profits, position
 
 # Replace this list with the 15 stocks you want to analyze
 stock_symbols =  ['BK','DAL','INTC','VICI','JCI','PNR','CTRA','CPB','MTCH','HWM','CARR','DD','PARA','KHC','CSCO']
+
 investment_amount = 500
-backtest_results = pd.DataFrame(columns=['Symbol', 'Ending_Capital', 'Profits'])
+backtest_results = pd.DataFrame(columns=['Symbol', 'Ending_Capital', 'Profits', 'Stocks_Bought'])
 
 for symbol in stock_symbols:
     data = get_stock_data(symbol, '2020-01-01', '2023-01-01')
     add_moving_averages(data)
     data['Buy_Signal'], data['Sell_Signal'] = simple_moving_average_strategy(data)
-    ending_capital, profits = backtest(data, investment_amount)
+    ending_capital, profits, stocks_bought = backtest(data, investment_amount)
     
     backtest_results = backtest_results.append({
         'Symbol': symbol,
         'Ending_Capital': ending_capital,
-        'Profits': profits
+        'Profits': profits,
+        'Stocks_Bought': stocks_bought
     }, ignore_index=True)
 
-print(backtest_results)
+    # Plot the data
+    plt.figure(figsize=(12, 6))
+    plt.plot(data['Close'], label='Close Price', alpha=0.5)
+    plt.plot(data['SMA_50'], label='50-day SMA', linestyle='--', alpha=0.5)
+    plt.plot(data['SMA_200'], label = '200-day SMA', linestyle='--', alpha=0.5)
+    
+    
+    plt.scatter(data.index, data['Buy_Signal'], label='Buy', marker='^', color='green')
+    plt.scatter(data.index, data['Sell_Signal'], label='Sell', marker='v', color='red')
+    plt.title(symbol)
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    plt.legend(loc='upper left')
+    plt.show()
+    
+   
+    
+    
+backtest_results.to_csv('backtest_results.csv', index=False)
+    
+    
+    
+    
